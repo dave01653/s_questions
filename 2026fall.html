@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Vocabulario de Español - Otoño 2026</title>
+  <style>
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #fdf2f8;
+      margin: 0;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: white;
+      border-radius: 28px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 620px;
+      padding: 20px;
+      text-align: center;
+    }
+    /* Barra de Capítulos */
+    .chapter-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 10px;
+      margin-bottom: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .chap-btn {
+      background: #f1f5f9;
+      border: 2px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .chap-btn.active {
+      background: #4f46e5;
+      color: white;
+      border-color: #4f46e5;
+    }
+    /* Selector de Modo */
+    .mode-switch {
+      display: flex;
+      background: #f1f5f9;
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 16px;
+    }
+    .mode-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 10px;
+      border-radius: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #475569;
+      cursor: pointer;
+    }
+    .mode-btn.active {
+      background: white;
+      color: #1e3a8a;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    /* Cuadro de Audio Principal */
+    .prompt-box {
+      background: #eff6ff;
+      border-radius: 20px;
+      padding: 14px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      border: 2px solid #bfdbfe;
+    }
+    .prompt-box:active { background: #dbeafe; }
+    .speaker-icon { font-size: 2rem; display: inline-block; }
+    h2 { margin: 4px 0; color: #1e3a8a; font-size: 1.45rem; }
+    .sub-en { color: #64748b; font-size: 0.95rem; font-weight: 600; margin-top: 2px; }
+
+    /* Cuadrículas */
+    .grid-explore {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .grid-quiz {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .choice-btn {
+      background: #f8fafc;
+      border: 3px solid #e2e8f0;
+      border-radius: 22px;
+      padding: 14px 8px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #1e293b;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.1s, background 0.15s;
+      min-height: 120px;
+    }
+    .choice-btn:active { transform: scale(0.96); }
+    .choice-btn.selected {
+      border-color: #22c55e;
+      background: #f0fdf4;
+      color: #15803d;
+    }
+    .choice-btn.wrong {
+      border-color: #f59e0b;
+      background: #fffbeb;
+    }
+    .choice-emoji { font-size: 3.1rem; margin-bottom: 6px; line-height: 1.1; }
+    .en-label { font-size: 0.85rem; color: #64748b; font-weight: 500; margin-top: 3px; }
+
+    .banner {
+      min-height: 44px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #047857;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .nav-btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      border-radius: 18px;
+      padding: 14px 24px;
+      font-size: 1.15rem;
+      font-weight: bold;
+      width: 100%;
+      cursor: pointer;
+    }
+    .nav-btn:active { background: #4f46e5; }
+    .voice-status { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- Botones de Capítulos -->
+    <div class="chapter-bar" id="chapterBar"></div>
+
+    <!-- Selector de Modo: Explorar vs. Jugar -->
+    <div class="mode-switch">
+      <button class="mode-btn active" id="btnExplore" onclick="setMode('explore')">📖 Explorar (6)</button>
+      <button class="mode-btn" id="btnQuiz" onclick="setMode('quiz')">🎯 ¡A Jugar!</button>
+    </div>
+
+    <!-- Recuadro de instrucción / pregunta -->
+    <div class="prompt-box" id="promptBox" onclick="handlePromptClick()">
+      <div class="speaker-icon">🔊</div>
+      <h2 id="qText">Toca cualquier dibujo para escuchar</h2>
+      <div class="sub-en" id="qSub">(Tap any picture to hear the Spanish word)</div>
+    </div>
+
+    <!-- Cuadrícula de tarjetas -->
+    <div class="grid-explore" id="choicesGrid"></div>
+
+    <!-- Mensaje de retroalimentación -->
+    <div class="banner" id="feedback">¡Vamos a practicar!</div>
+
+    <!-- Botón de navegación -->
+    <button class="nav-btn" id="nextBtn" onclick="nextAction()">Siguiente Capítulo ➡️</button>
+    <div class="voice-status" id="voiceName">Buscando voz...</div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // BASE DE DATOS DE CAPÍTULOS (Agrega Capítulo 7, 8, etc. al final de la lista)
+    // =========================================================================
+    const chapters = [
+      {
+        title: "Cap. 1",
+        words: [
+          { emoji: "⚽🏟️", es: "el fútbol", en: "soccer" },
+          { emoji: "⚽", es: "la pelota de fútbol", en: "the soccer ball" },
+          { emoji: "🦵⚽", es: "patear la pelota", en: "to kick the ball" },
+          { emoji: "🥅", es: "la portería", en: "the goal" },
+          { emoji: "📬🧑‍✈️", es: "el cartero", en: "the mailman" },
+          { emoji: "📫", es: "el buzón gris", en: "the gray mailbox" }
+        ]
+      },
+      {
+        title: "Cap. 2",
+        words: [
+          { emoji: "✉️", es: "la carta", en: "the letter" },
+          { emoji: "💮✉️", es: "la estampilla", en: "the stamp" },
+          { emoji: "📖", es: "el libro", en: "the book" },
+          { emoji: "👨‍👩‍👧‍👧😊", es: "la familia sonríe", en: "the family smiles" },
+          { emoji: "💃🕺", es: "los bailarines", en: "the dancers" },
+          { emoji: "🐶🦴", es: "el hueso de Cosmo", en: "Cosmo's bone" }
+        ]
+      },
+      {
+        title: "Cap. 3",
+        words: [
+          { emoji: "👕", es: "la camisa", en: "the shirt" },
+          { emoji: "🛏️👧", es: "la cama de Lucía", en: "Lucia's bed" },
+          { emoji: "📅", es: "el calendario", en: "the calendar" },
+          { emoji: "🧳🧳", es: "las maletas", en: "the suitcases" },
+          { emoji: "🇦🇷🗺️", es: "Argentina", en: "Argentina" },
+          { emoji: "🚕", es: "el taxi", en: "the taxi" }
+        ]
+      },
+      {
+        title: "Cap. 4",
+        words: [
+          { emoji: "🏠🦠🧹", es: "la casa está sucia", en: "the house is dirty" },
+          { emoji: "🚽🛁", es: "el baño", en: "the bathroom" },
+          { emoji: "🪣🧹", es: "el trapeador", en: "the mop" },
+          { emoji: "🪶✨", es: "el plumero", en: "the duster" },
+          { emoji: "🛋️📺", es: "la sala", en: "the living room" },
+          { emoji: "🏡✨🌟", es: "la casa está limpia", en: "the house is clean" }
+        ]
+      },
+      {
+        title: "Cap. 5",
+        words: [
+          { emoji: "🧽🧻", es: "los trapos", en: "the rags" },
+          { emoji: "🍞🥖", es: "el pan", en: "the bread" },
+          { emoji: "🍊🧃", es: "el jugo de naranja", en: "the orange juice" },
+          { emoji: "🏘️🌳", es: "el vecindario", en: "the neighborhood" },
+          { emoji: "🍕🏪", es: "la pizzería", en: "the pizza place" },
+          { emoji: "🧢👦", es: "la gorra del niño", en: "the kid's hat" }
+        ]
+      },
+      {
+        title: "Cap. 6",
+        words: [
+          { emoji: "🌾🐄🌄", es: "el campo", en: "the countryside" },
+          { emoji: "🛣️🚗", es: "la autopista", en: "the freeway" },
+          { emoji: "🤠🤠", es: "los vaqueros", en: "the cowboys" },
+          { emoji: "🥾🤠", es: "las botas vaqueras", en: "the cowboy boots" },
+          { emoji: "🐎🐴", es: "los caballos", en: "the horses" },
+          { emoji: "🏇🤠", es: "montar a caballo", en: "to horseback ride" }
+        ]
+      }
+    ];
+
+    let curChap = 0;
+    let mode = 'explore'; // 'explore' o 'quiz'
+    let quizIdx = 0;
+    let currentQuizChoices = [];
+    let selectedVoice = null;
+
+    // Selección de voz mejorada de Apple / Siri
+    function pickBestVoice() {
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices.length) return;
+
+      const esVoices = voices.filter(v => v.lang.toLowerCase().startsWith('es'));
+
+      let best = esVoices.find(v =>
+        v.name.includes('Enhanced') ||
+        v.name.includes('Premium') ||
+        v.name.includes('Siri')
+      );
+
+      if (!best) {
+        best = esVoices.find(v => !v.name.includes('Compact'));
+      }
+      if (!best && esVoices.length > 0) {
+        best = esVoices[0];
+      }
+
+      selectedVoice = best;
+      const statusLabel = document.getElementById('voiceName');
+      if (selectedVoice) {
+        statusLabel.innerText = "Voz: " + selectedVoice.name;
+      }
+    }
+
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = pickBestVoice;
+      pickBestVoice();
+    }
+
+    function speak(text) {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (selectedVoice) {
+        u.voice = selectedVoice;
+      }
+      u.lang = 'es-MX';
+      u.rate = 0.88;
+      u.pitch = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+
+    function renderChapterButtons() {
+      const bar = document.getElementById('chapterBar');
+      bar.innerHTML = '';
+      chapters.forEach((ch, idx) => {
+        const b = document.createElement('button');
+        b.className = 'chap-btn' + (idx === curChap ? ' active' : '');
+        b.innerText = ch.title;
+        b.onclick = () => {
+          curChap = idx;
+          quizIdx = 0;
+          render();
+        };
+        bar.appendChild(b);
+      });
+    }
+
+    function setMode(newMode) {
+      mode = newMode;
+      quizIdx = 0;
+      document.getElementById('btnExplore').className = 'mode-btn' + (mode === 'explore' ? ' active' : '');
+      document.getElementById('btnQuiz').className = 'mode-btn' + (mode === 'quiz' ? ' active' : '');
+      render();
+    }
+
+    function shuffle(arr) {
+      return [...arr].sort(() => Math.random() - 0.5);
+    }
+
+    function handlePromptClick() {
+      const words = chapters[curChap].words;
+      if (mode === 'quiz') {
+        speak("¿Dónde está " + words[quizIdx].es + "?");
+      } else {
+        speak(chapters[curChap].title);
+      }
+    }
+
+    function render() {
+      renderChapterButtons();
+      const words = chapters[curChap].words;
+      const grid = document.getElementById('choicesGrid');
+      grid.innerHTML = '';
+
+      if (mode === 'explore') {
+        grid.className = 'grid-explore';
+        document.getElementById('qText').innerText = chapters[curChap].title + ": Toca para escuchar";
+        document.getElementById('qSub').innerText = "Toca cualquier dibujo para oír su pronunciación";
+        document.getElementById('feedback').innerText = "Toca una tarjeta 👇";
+        document.getElementById('nextBtn').innerText = "🎯 ¡Jugar con estas palabras!";
+
+        words.forEach((w) => {
+          const btn = document.createElement('div');
+          btn.className = 'choice-btn';
+          btn.innerHTML = `
+            <span class="choice-emoji">${w.emoji}</span>
+            <span>${w.es}</span>
+            <span class="en-label">${w.en}</span>
+          `;
+          btn.onclick = () => {
+            document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            document.getElementById('feedback').innerText = "🗣️ " + w.es;
+            speak(w.es);
+          };
+          grid.appendChild(btn);
+        });
+      } else {
+        // Modo Juego (Quiz de 4 opciones visuales)
+        grid.className = 'grid-quiz';
+        const target = words[quizIdx];
+        document.getElementById('qText').innerText = "¿Dónde está: «" + target.es + "»?";
+        document.getElementById('qSub').innerText = "(" + target.en + " — Toca aquí para volver a escuchar)";
+        document.getElementById('feedback').innerText = "Busca el dibujo correcto";
+        document.getElementById('nextBtn').innerText = "Siguiente Palabra ➡️ (" + (quizIdx + 1) + "/" + words.length + ")";
+
+        // Seleccionar 3 distractores del mismo capítulo + la respuesta correcta
+        const others = shuffle(words.filter((_, i) => i !== quizIdx)).slice(0, 3);
+        currentQuizChoices = shuffle([target, ...others]);
+
+        currentQuizChoices.forEach((c) => {
+          const btn = document.createElement('div');
+          btn.className = 'choice-btn';
+          btn.innerHTML = `
+            <span class="choice-emoji">${c.emoji}</span>
+            <span>${c.es}</span>
+          `;
+          btn.onclick = () => {
+            if (c.es === target.es) {
+              document.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected', 'wrong'));
+              btn.classList.add('selected');
+              document.getElementById('feedback').innerText = "🎉 ¡Muy bien! " + c.es;
+              speak("¡Muy bien! " + c.es);
+            } else {
+              btn.classList.add('wrong');
+              document.getElementById('feedback').innerText = "Eso es: " + c.es + ". ¡Intenta otra vez!";
+              speak(c.es);
+            }
+          };
+          grid.appendChild(btn);
+        });
+
+        speak("¿Dónde está " + target.es + "?");
+      }
+    }
+
+    function nextAction() {
+      const words = chapters[curChap].words;
+      if (mode === 'explore') {
+        setMode('quiz');
+      } else {
+        quizIdx++;
+        if (quizIdx >= words.length) {
+          quizIdx = 0;
+          curChap = (curChap + 1) % chapters.length;
+          setMode('explore');
+        } else {
+          render();
+        }
+      }
+    }
+
+    window.onload = () => {
+      pickBestVoice();
+      render();
+    };
+  </script>
+</body>
+</html>
